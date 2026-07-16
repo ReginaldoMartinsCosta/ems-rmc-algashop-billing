@@ -2,15 +2,16 @@ package com.algaworks.algashop.billing.domain.model.invoice;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter(AccessLevel.PRIVATE)
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Payer {
-    private String fullName;
-    private String document;
-    private String phone;
-    private String email;
-    private Address address;
+@Builder
+public class LineItem {
+    private Integer number;
+    private String name;
+    private BigDecimal amount;
 }
