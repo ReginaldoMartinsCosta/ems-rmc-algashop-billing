@@ -14,4 +14,5 @@ import java.math.BigDecimal;
 public class LineItemInput {
     private String name;
     private BigDecimal amount;
+    private Integer quantity;
 }
