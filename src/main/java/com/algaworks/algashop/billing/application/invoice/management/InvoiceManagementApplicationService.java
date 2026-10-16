@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class InvoiceManagementApplicationService {
+
     private final PaymentGatewayService paymentGatewayService;
     private final InvoicingService invoicingService;
     private final InvoiceRepository invoiceRepository;
@@ -30,7 +31,9 @@ public class InvoiceManagementApplicationService {
     @Transactional
     public UUID generate(GenerateInvoiceInput input) {
         PaymentSettingsInput paymentSettings = input.getPaymentSettings();
-        verifyCreditCardId(paymentSettings.getCreditCardId(), input.getCustomerId());
+        if (paymentSettings.getMethod().equals(PaymentMethod.CREDIT_CARD)) {
+            verifyCreditCard(input);
+        }
 
         Payer payer = convertToPayer(input.getPayer());
         Set<LineItem> items = convertToLineItems(input.getItems());
@@ -41,6 +44,14 @@ public class InvoiceManagementApplicationService {
         invoiceRepository.saveAndFlush(invoice);
 
         return invoice.getId();
+    }
+
+    private void verifyCreditCard(GenerateInvoiceInput input) {
+        UUID creditCardId = input.getPaymentSettings().getCreditCardId();
+        UUID customerId = input.getCustomerId();
+        if (creditCardId != null && !creditCardRepository.existsByIdAndCustomerId(creditCardId, customerId)) {
+            throw new CreditCardNotFoundException();
+        }
     }
 
     @Transactional
@@ -112,12 +123,6 @@ public class InvoiceManagementApplicationService {
                         .number(addressData.getNumber())
                         .build())
                 .build();
-    }
-
-    private void verifyCreditCardId(UUID creditCardId, @NotNull UUID customerId) {
-        if (creditCardId != null && !creditCardRepository.existsByIdAndCustomerId(creditCardId, customerId)) {
-            throw new CreditCardNotFoundException();
-        }
     }
 
 }
